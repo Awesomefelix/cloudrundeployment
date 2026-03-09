@@ -1,5 +1,5 @@
 substitutions:
-  _SERVICE_NAME: flxcloudrun
+  _SERVICE_NAME: flxcloudrun #new
   _REGION: us-central1
   _IMAGE: gcr.io/${PROJECT_ID}/gcp-api
 
