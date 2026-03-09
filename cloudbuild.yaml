@@ -4,7 +4,7 @@ substitutions:
   _IMAGE: us-central1-docker.pkg.dev/${PROJECT_ID}/gcp-api/gcp-api
 
 steps:
-  # 1. Build Docker image
+  # 1. Build Docker image (Now handles both tags at once)
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - build
@@ -14,11 +14,7 @@ steps:
       - '${_IMAGE}:latest'
       - '.'
 
-  # 2. Push image to Artifact Registry
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', '--all-tags', '${_IMAGE}']
-
-  # 3. Deploy to Cloud Run
+  # 2. Deploy to Cloud Run (Pulls from the image built in Step 1)
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -28,8 +24,14 @@ steps:
       - '--image=${_IMAGE}:${SHORT_SHA}'
       - '--region=${_REGION}'
       - '--platform=managed'
+      - '--quiet' # Prevents the build from hanging on prompts
 
-serviceAccount: 'projects/project-e850148f-e9b2-4456-99d/serviceAccounts/389077935832@cloudbuild.gserviceaccount.com'
+# This replaces your old 'Step 2'. Cloud Build handles the push for you.
+images:
+  - '${_IMAGE}:${SHORT_SHA}'
+  - '${_IMAGE}:latest'
+
+serviceAccount: 'projects/${PROJECT_ID}/serviceAccounts/389077935832@cloudbuild.gserviceaccount.com'
 
 options:
   logging: CLOUD_LOGGING_ONLY
