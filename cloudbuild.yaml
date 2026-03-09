@@ -32,6 +32,3 @@ images:
   - '${_IMAGE}:latest'
 
 serviceAccount: 'projects/${PROJECT_ID}/serviceAccounts/389077935832@cloudbuild.gserviceaccount.com'
-
-options:
-  logging: CLOUD_LOGGING_ONLY
