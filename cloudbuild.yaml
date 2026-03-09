@@ -1,11 +1,7 @@
-# cloudbuild.yaml
-# Triggered automatically on git push (connect via Cloud Build GitHub app)
-# or manually: gcloud builds submit --config cloudbuild.yaml
-
 substitutions:
-  _SERVICE_NAME: gcp-api
+  _SERVICE_NAME: flxcloudrun
   _REGION: us-central1
-  _IMAGE: gcr.io/$PROJECT_ID/${_SERVICE_NAME}
+  _IMAGE: gcr.io/$PROJECT_ID/gcp-api
 
 steps:
   # 1. Build Docker image
@@ -18,7 +14,7 @@ steps:
       - '${_IMAGE}:latest'
       - '.'
 
-  # 2. Push image to Container Registry
+  # 2. Push image to GCR
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', '--all-tags', '${_IMAGE}']
 
@@ -32,17 +28,6 @@ steps:
       - '--image=${_IMAGE}:$SHORT_SHA'
       - '--region=${_REGION}'
       - '--platform=managed'
-      - '--allow-unauthenticated'
-      - '--port=8080'
-      - '--add-cloudsql-instances=$PROJECT_ID:${_REGION}:your-instance-name'
-      - '--set-env-vars=NODE_ENV=production'
-      # Secrets are pulled from Secret Manager — set these up first:
-      # gcloud secrets create DB_PASSWORD --data-file=-
-      - '--set-secrets=DB_PASSWORD=DB_PASSWORD:latest,JWT_SECRET=JWT_SECRET:latest,DB_NAME=DB_NAME:latest,DB_USER=DB_USER:latest,CLOUD_SQL_INSTANCE_CONNECTION_NAME=CLOUD_SQL_INSTANCE_CONNECTION_NAME:latest'
-
-images:
-  - '${_IMAGE}:$SHORT_SHA'
-  - '${_IMAGE}:latest'
 
 options:
   logging: CLOUD_LOGGING_ONLY
