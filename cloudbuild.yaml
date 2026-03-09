@@ -4,7 +4,7 @@ substitutions:
   _IMAGE: us-central1-docker.pkg.dev/${PROJECT_ID}/gcp-api/gcp-api
 
 steps:
-  # 1. Build Docker image (Now handles both tags at once)
+  # 1. Build Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - build
@@ -14,7 +14,12 @@ steps:
       - '${_IMAGE}:latest'
       - '.'
 
-  # 2. Deploy to Cloud Run (Pulls from the image built in Step 1)
+  # 2. MANUALLY Push the specific tag needed for deploy
+  # This ensures the image exists BEFORE Cloud Run tries to grab it
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', '${_IMAGE}:${SHORT_SHA}']
+
+  # 3. Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -24,11 +29,10 @@ steps:
       - '--image=${_IMAGE}:${SHORT_SHA}'
       - '--region=${_REGION}'
       - '--platform=managed'
-      - '--quiet' # Prevents the build from hanging on prompts
+      - '--quiet'
 
-# This replaces your old 'Step 2'. Cloud Build handles the push for you.
+# Keep this to ensure 'latest' also gets pushed at the end
 images:
-  - '${_IMAGE}:${SHORT_SHA}'
   - '${_IMAGE}:latest'
 
 serviceAccount: 'projects/${PROJECT_ID}/serviceAccounts/389077935832@cloudbuild.gserviceaccount.com'
